@@ -51,7 +51,7 @@ I configured and examined firewall policies intended to **restrict Guest access 
 
 ## 🗺️ Network architecture
 
-![Original Home Lab Network Architecture](assets/evidence/01-home-lab-network-architecture.png)
+![Original Home Lab Network Architecture](assets/evidence/01-home-lab-network-architecture-final.jpg)
 
 *Figure 1. Original Home Lab Network Architecture for VMware and pfSense. Some labels reflect a planning-stage NAT subnet. The observed pfSense dashboard below is the authoritative evidence for addresses used in the running snapshot.*
 
