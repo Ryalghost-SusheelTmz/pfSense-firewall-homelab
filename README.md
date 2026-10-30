@@ -4,7 +4,7 @@
 
 ### Build → Test → Defend → Validate
 
-**VMware Workstation · pfSense CE 2.8.1 · Kali Linux · Windows · Segmented Networks · Wireshark**
+**VMware Workstation · pfSense CE 2.8.1 · VLANs · OpenVPN · Snort IDS · Wireshark**
 
 ![pfSense](https://img.shields.io/badge/pfSense-CE_2.8.1-205a9d?style=for-the-badge)
 ![Networking](https://img.shields.io/badge/Focus-Network_Segmentation_&_Firewall_Rules-156e79?style=for-the-badge)
@@ -20,20 +20,23 @@
 
 ## 📌 Project overview
 
-I built an isolated enterprise-style home lab using **pfSense Community Edition** as a virtual firewall within **VMware Workstation**, with separate **Employee** and **Guest** networks and an **external Kali Linux test client**. The project explores routing, network address translation (NAT), DHCP service visibility, firewall rules, management-plane security, and packet-level investigation.
+I built an **enterprise-style pfSense firewall security home lab** on VMware Workstation, with an external NAT/WAN interface, Employee, Guest, Server and Management interfaces, and five configured departmental VLAN subinterfaces for Executive, Client, HR, IT and Admin networks.
 
-I configured and examined firewall policies intended to **restrict Guest access to the Employee subnet**, tested network reachability from Kali and Windows, and examined TCP SYN traffic in **Wireshark**. The attached evidence demonstrates both successful connectivity and unsuccessful probes, providing a foundation for the SOC analyst's **build → test → defend** workflow.
+I configured and reviewed firewall rules, inspected DHCP and pfBlockerNG service status, validated reachability with Windows and Kali Linux, and investigated packet behavior with Wireshark. The extended lab includes **two configured OpenVPN server profiles**, an observed successful Remote Users tunnel, and **Snort IDS alerts on the Employee interface** for SSH connection monitoring and HTTP activity.
 
-> **Evidence scope:** This case study is grounded in the original screenshots, not invented lab results. The original images are catalogued at [docs/EVIDENCE.md](docs/EVIDENCE.md). The original eleven evidence images are present in `assets/evidence/`; the seven additional privacy-redacted VPN/Snort images are prepared separately for upload. The architecture drawing is the original *network design*, while the pfSense dashboard provides observed deployed interface addresses.
+**SOC Level 1 focus:** correlate interface, policy, detection signature, endpoint and packet evidence; distinguish an alert from an enforced block; document what is confirmed and what requires further investigation.
+
+> The deployed network has **more interfaces than the original three-segment drawing**. See the [deployment-aligned architecture and security traffic workflow](docs/NETWORK_ARCHITECTURE.md). Original screenshots are indexed in [EVIDENCE.md](docs/EVIDENCE.md). A configured interface does not prove every VLAN is reachable or isolated; a VPN connection does not prove public-Internet access; and Snort alerts do not alone prove intrusion prevention.
 
 ## 🎯 Project goals
 
 - Deploy a pfSense firewall VM and establish isolated network interfaces using VMware virtual networks.
-- Configure and verify **WAN, Employee, and Guest** interface addressing.
+- Document configured **WAN, Employee, Guest, Servers, Management and departmental VLAN** interfaces.
 - Inspect DHCP and other firewall services, applying a least-privilege approach to management access.
 - Create ordered firewall rules that isolate Guest traffic from Employee systems.
 - Generate controlled, authorized test traffic from Kali Linux and inspect the traffic observed by pfSense and Wireshark.
 - Compare packet evidence, policy counters and actual connectivity rather than treating a failed ping alone as proof of effective filtering.
+- Investigate **OpenVPN** tunnel status and **Snort IDS** evidence from the authorized lab.
 - Document the findings from a **SOC Level 1 / junior security analyst** perspective.
 
 ## 🧰 Technology stack
@@ -47,41 +50,32 @@ I configured and examined firewall policies intended to **restrict Guest access 
 | Guest Linux VM | Designed Guest-segment endpoint; no separate live screenshot supplied |
 | Wireshark | TCP/SYN and retransmission inspection |
 | pfBlockerNG | Installed package and DNSBL/IP filtering visibility, not independently verified blocking |
+| OpenVPN | Configured VPN profiles and recorded connected lab client |
+| Snort IDS | Local SSH/HTTP alert investigation on Employee (em1) |
 | Browser / CLI | pfSense administration, ping tests and traffic review |
 
 ## 🗺️ Network architecture
 
-![Original Home Lab Network Architecture](assets/evidence/01-home-lab-network-architecture-final.jpg)
+**[Explore the complete deployed network architecture, VLANs, VPN and Snort monitoring diagram →](docs/NETWORK_ARCHITECTURE.md)**
 
-*Figure 1. Original Home Lab Network Architecture for VMware and pfSense. Some labels reflect a planning-stage NAT subnet. The observed pfSense dashboard below is the authoritative evidence for addresses used in the running snapshot.*
+![Original high-level pfSense network design](assets/evidence/01-home-lab-network-architecture-final.jpg)
 
-### Actual interface addresses in the supplied dashboard
+*Figure 1. Original simplified three-segment network design. The deployed pfSense WAN shown in the console is on VMware NAT 192.168.177.0/24, not directly on the upstream 192.168.1.0/24 home-router network. Newer server/management interfaces, VLANs, VPN profiles and IDS monitoring appear in the detailed architecture.*
 
-| Network / pfSense interface | VMware role | Observed network and address | Purpose |
+### Configured network interfaces
+
+| Segment | Interface | Address / CIDR | Evidence scope |
 |---|---|---|---|
-| **WAN** | VMnet8 NAT | `192.168.177.131/24` on pfSense | Upstream/NAT-side lab connectivity |
-| **EMPLOYEE** | VMnet2 host-only | `10.1.1.1/24` | Windows Employee LAN |
-| **GUEST** | VMnet3 host-only | `10.2.2.1/24` | Isolated Guest LAN |
-| **External Kali** | VMnet8 NAT | `192.168.177.x/24` | Kali outside the Employee/Guest interfaces |
-| **Windows Employee** | Employee LAN | `10.1.1.100/24`, gateway `10.1.1.1` | Policy and connectivity validation |
+| WAN | em0 | `192.168.177.131/24` | VMware NAT VMnet8; gateway `192.168.177.2` |
+| Employee | em1 | `10.1.1.1/24` | Original VMnet2 host-only design |
+| Guest | em2 | `10.2.2.1/24` | Original VMnet3 host-only design |
+| Servers | em3 | `10.1.100.1/24` | Configured; exact VMware network mapping not captured |
+| Management | em4 | `192.168.150.1/24` | Configured; GUI access isolation not verified |
+| Executive / Client / HR / IT / Admin | em1.10 / .20 / .30 / .40 / .50 | `10.1.10.1`, `10.1.20.1`, `10.1.30.1`, `10.1.40.1`, `10.1.50.1` | Configured VLAN subinterfaces; endpoint tagging and reachability not verified |
+| OpenVPN Contractor | WAN server | `10.0.100.0/24` | Configured TUN profile |
+| OpenVPN Remote Users | WAN server | `10.10.10.0/24` | TUN profile with a connected lab client `10.10.10.2` |
 
-**Important distinction:** The architecture drawing labels an upstream `192.168.1.0/24` home-router subnet, while the running pfSense dashboard shows the actual firewall WAN as **`192.168.177.131`** on the VMware NAT network. Likewise, the deployed Guest interface appears as **`10.2.2.1`** rather than a generic `10.2.X.1`. These are recorded as design-vs-deployment differences, not silently overwritten.
-
-### Routing and security boundary
-
-```mermaid
-flowchart TB
-    INTERNET["Home router / upstream Internet"] --> NAT["VMware VMnet8 · NAT<br/>192.168.177.0/24"]
-    KALI["Kali test VM<br/>External client on VMnet8"] --- NAT
-    NAT --> FW["pfSense CE 2.8.1<br/>WAN 192.168.177.131"]
-    FW --> EMP["EMPLOYEE · VMnet2 Host-only<br/>Gateway 10.1.1.1/24"]
-    FW --> GUEST["GUEST · VMnet3 Host-only<br/>Gateway 10.2.2.1/24"]
-    EMP --> WIN["Windows Employee<br/>10.1.1.100"]
-    GUEST --> LINUX["Guest Linux segment"]
-    GUEST -. "Firewall deny rule: 10.2.2.0/24 to 10.1.1.0/24" .-> EMP
-    classDef firewall fill:#174d6a,color:#fff,stroke:#42d1c0,stroke-width:2px;
-    class FW firewall;
-```
+**Monitoring:** Snort alerts are shown for **Employee (em1)**; cross-VLAN Snort coverage is not established.
 
 ## 🔧 Step-by-step project implementation
 
@@ -270,6 +264,7 @@ This project strengthened my foundation in **network segmentation, alert/log int
 
 | Resource | Description |
 |---|---|
+| [Deployment-aligned network architecture](docs/NETWORK_ARCHITECTURE.md) | Interface and VLAN diagram, VPN topology, Snort monitoring and traffic flow |
 | [Implementation guide](docs/IMPLEMENTATION.md) | Network creation, DHCP verification, management access and safe validation steps |
 | [Firewall policies](docs/FIREWALL_POLICIES.md) | Captured Employee and Guest rule sets and rule-order analysis |
 | [Traffic analysis](docs/TRAFFIC_ANALYSIS.md) | ICMP, SYN, Wireshark and test/defend interpretation |
