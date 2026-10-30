@@ -24,7 +24,7 @@ I built an isolated enterprise-style home lab using **pfSense Community Edition*
 
 I configured and examined firewall policies intended to **restrict Guest access to the Employee subnet**, tested network reachability from Kali and Windows, and examined TCP SYN traffic in **Wireshark**. The attached evidence demonstrates both successful connectivity and unsuccessful probes, providing a foundation for the SOC analyst's **build → test → defend** workflow.
 
-> **Evidence scope:** This case study is grounded in the original screenshots, not invented lab results. The original images are catalogued at [docs/EVIDENCE.md](docs/EVIDENCE.md). Their links will display here once the exact files from the downloadable evidence package are uploaded to `assets/evidence/`. The architecture drawing is the original *network design*, while the pfSense dashboard provides observed deployed interface addresses.
+> **Evidence scope:** This case study is grounded in the original screenshots, not invented lab results. The original images are catalogued at [docs/EVIDENCE.md](docs/EVIDENCE.md). The original eleven evidence images are present in `assets/evidence/`; the seven additional privacy-redacted VPN/Snort images are prepared separately for upload. The architecture drawing is the original *network design*, while the pfSense dashboard provides observed deployed interface addresses.
 
 ## 🎯 Project goals
 
@@ -177,6 +177,52 @@ The pfSense dashboard shows **pfBlockerNG** installed, with IP/DNSBL status widg
 
 *Figure 11. Original system-version and update-check evidence.*
 
+## 🔐 Extended lab — OpenVPN remote access and Snort IDS
+
+The original pfSense console also shows additional server and management interfaces, plus five VLAN subinterfaces beyond the simplified initial diagram. The following are screenshots from the extended lab, not proof that every VLAN has been independently tested.
+
+### OpenVPN remote-user connectivity
+
+Configured **SSL/TLS + user-authentication** OpenVPN profiles are visible for Contractor (UDP 1194, tunnel `10.0.100.0/24`) and Remote Users (UDP 1195, tunnel `10.10.10.0/24`). The original client recording shows **Connected**, **Initialization Sequence Completed** and the assigned tunnel address `10.10.10.2`. Earlier connection errors are also present in the log, so this is evidence of a successful later connection rather than an uninterrupted session.
+
+![pfSense VM console with additional interfaces](assets/evidence/12-pfsense-vm-console.png)
+
+*Figure 12. Deployed interface details, including the server/management interfaces and employee VLANs.*
+
+![Interface assignment screen](assets/evidence/13-interface-assignments-and-vlans.png)
+
+*Figure 13. Interface mappings and VLAN assignments.*
+
+![OpenVPN remote access server profiles](assets/evidence/14-openvpn-server-profiles.png)
+
+*Figure 14. Contractor and Remote Users OpenVPN profiles.*
+
+![Successful OpenVPN client session](assets/evidence/15-openvpn-client-connected.png)
+
+*Figure 15. Client-side tunnel status and assigned virtual IP.*
+
+[OpenVPN configuration and validation notes](docs/OPENVPN.md)
+
+### Snort IDS — network alert investigations
+
+The Snort **EMPLOYEE (em1)** alert screenshots document three local detection objectives: SSH connection monitoring (SID `1000001`), HTTP domain-related monitoring (SID `1000002`), and an HTTP upload size-related alert (SID `1000003`). The local rules were evaluated in an authorized lab.
+
+![Snort SSH alert record](assets/evidence/16-snort-ssh-detection.png)
+
+*Figure 16. SSH-monitoring alert evidence, with student number redacted.*
+
+![Snort HTTP detection records](assets/evidence/17-snort-http-domain-alerts.png)
+
+*Figure 17. Domain-related HTTP alerts and HTTP inspector anomalies, with student number redacted.*
+
+![Snort HTTP POST upload detection](assets/evidence/18-snort-large-http-upload.png)
+
+*Figure 18. Upload-monitoring alert and supporting notes.*
+
+**Analyst finding:** These captures establish that Snort generated alert records. They do **not**, by themselves, prove a password compromise, data exfiltration, or that a rule blocked traffic. The alert message and actual enforcement decision must be checked separately.
+
+[Snort IDS evidence and investigation guide](docs/SNORT_IDS.md)
+
 ## 🔎 Firewall rule summary
 
 | Interface | Policy shown | Captured state | Security purpose |
@@ -228,6 +274,8 @@ This project strengthened my foundation in **network segmentation, alert/log int
 | [Firewall policies](docs/FIREWALL_POLICIES.md) | Captured Employee and Guest rule sets and rule-order analysis |
 | [Traffic analysis](docs/TRAFFIC_ANALYSIS.md) | ICMP, SYN, Wireshark and test/defend interpretation |
 | [Evidence index](docs/EVIDENCE.md) | All original screenshots with exact matching filenames |
+| [OpenVPN remote access](docs/OPENVPN.md) | Server profiles, tunnel assignment and client status |
+| [Snort IDS investigations](docs/SNORT_IDS.md) | Three local detection cases and alert interpretation |
 | [Security notes](SECURITY.md) | Scope, lab safety and redaction principles |
 
 > **Lab safety:** All traffic-generation activities are confined to systems owned or explicitly authorized for testing. High-rate packet generation must not be repeated against public or shared networks. Real management access should use HTTPS and least privilege.
