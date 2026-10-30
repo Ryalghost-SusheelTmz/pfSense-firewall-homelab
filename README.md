@@ -213,7 +213,7 @@ The Snort **EMPLOYEE (em1)** alert screenshots document three local detection ob
 
 ![Snort HTTP detection records](assets/evidence/17-snort-http-domain-alerts.png)
 
-*Figure 17. Domain-related HTTP alerts and HTTP inspector anomalies, with student number redacted.*
+*Figure 17. Domain-related HTTP alerts and HTTP inspector anomalies.*
 
 ![Snort HTTP POST upload detection](assets/evidence/18-snort-large-http-upload.png)
 
