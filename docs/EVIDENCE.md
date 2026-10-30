@@ -1,10 +1,10 @@
 # Original screenshot evidence index
 
-All images are original files supplied for this project and should be uploaded into `assets/evidence/`, using these filenames. Each README section references the corresponding file.
+The original evidence images are present in `assets/evidence/`. The initial network design is retained for provenance; the deployment-aligned logical and security diagrams are documented in [NETWORK_ARCHITECTURE.md](NETWORK_ARCHITECTURE.md).
 
 | Filename | Evidence |
 |---|---|
-| 01-home-lab-network-architecture.png | VMware/pfSense network design |
+| 01-home-lab-network-architecture-final.jpg | Original three-segment VMware/pfSense design, expanded in docs/NETWORK_ARCHITECTURE.md |
 | 02-pfsense-setup-complete.png | Successful pfSense setup wizard |
 | 03-pfsense-dashboard.png | Actual pfSense interface IPs, gateways and services |
 | 04-employee-firewall-rules.png | Employee interface rule states |
@@ -20,7 +20,7 @@ All images are original files supplied for this project and should be uploaded i
 
 ## Additional VPN and Snort IDS evidence (privacy-redacted upload set)
 
-The following are **original user-provided screenshots** organized as files 12–18. Student number regions have been obscured in images 16 and 17 before publication. Their GitHub references will display once the sanitized files are uploaded.
+The original user-provided screenshots 12–18 are uploaded. Student-number regions were redacted in the published Snort images according to the prior evidence-preparation process.
 
 | Filename | Evidence |
 |---|---|
