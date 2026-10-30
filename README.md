@@ -24,7 +24,7 @@ I built an isolated enterprise-style home lab using **pfSense Community Edition*
 
 I configured and examined firewall policies intended to **restrict Guest access to the Employee subnet**, tested network reachability from Kali and Windows, and examined TCP SYN traffic in **Wireshark**. The attached evidence demonstrates both successful connectivity and unsuccessful probes, providing a foundation for the SOC analyst's **build → test → defend** workflow.
 
-> **Evidence scope:** This case study is grounded in the original screenshots, not invented lab results. The original images are catalogued at [docs/EVIDENCE.md](docs/EVIDENCE.md). Their links will display here once the exact files from the downloadable evidence package are uploaded to \`assets/evidence/\`. The architecture drawing is the original *network design*, while the pfSense dashboard provides observed deployed interface addresses.
+> **Evidence scope:** This case study is grounded in the original screenshots, not invented lab results. The original images are catalogued at [docs/EVIDENCE.md](docs/EVIDENCE.md). Their links will display here once the exact files from the downloadable evidence package are uploaded to `assets/evidence/`. The architecture drawing is the original *network design*, while the pfSense dashboard provides observed deployed interface addresses.
 
 ## 🎯 Project goals
 
@@ -43,7 +43,7 @@ I configured and examined firewall policies intended to **restrict Guest access 
 | pfSense CE **2.8.1** | Virtual firewall, routing, interface policies, NAT, DHCP service |
 | VMware Workstation | Virtual networking and isolation |
 | Kali Linux | External authorized test client on VMware NAT network |
-| Windows 10 VM | Employee endpoint, \`10.1.1.100/24\` in captured evidence |
+| Windows 10 VM | Employee endpoint, `10.1.1.100/24` in captured evidence |
 | Guest Linux VM | Designed Guest-segment endpoint; no separate live screenshot supplied |
 | Wireshark | TCP/SYN and retransmission inspection |
 | pfBlockerNG | Installed package and DNSBL/IP filtering visibility, not independently verified blocking |
@@ -59,17 +59,17 @@ I configured and examined firewall policies intended to **restrict Guest access 
 
 | Network / pfSense interface | VMware role | Observed network and address | Purpose |
 |---|---|---|---|
-| **WAN** | VMnet8 NAT | \`192.168.177.131/24\` on pfSense | Upstream/NAT-side lab connectivity |
-| **EMPLOYEE** | VMnet2 host-only | \`10.1.1.1/24\` | Windows Employee LAN |
-| **GUEST** | VMnet3 host-only | \`10.2.2.1/24\` | Isolated Guest LAN |
-| **External Kali** | VMnet8 NAT | \`192.168.177.x/24\` | Kali outside the Employee/Guest interfaces |
-| **Windows Employee** | Employee LAN | \`10.1.1.100/24\`, gateway \`10.1.1.1\` | Policy and connectivity validation |
+| **WAN** | VMnet8 NAT | `192.168.177.131/24` on pfSense | Upstream/NAT-side lab connectivity |
+| **EMPLOYEE** | VMnet2 host-only | `10.1.1.1/24` | Windows Employee LAN |
+| **GUEST** | VMnet3 host-only | `10.2.2.1/24` | Isolated Guest LAN |
+| **External Kali** | VMnet8 NAT | `192.168.177.x/24` | Kali outside the Employee/Guest interfaces |
+| **Windows Employee** | Employee LAN | `10.1.1.100/24`, gateway `10.1.1.1` | Policy and connectivity validation |
 
-**Important distinction:** The architecture drawing labels an upstream \`192.168.1.0/24\` home-router subnet, while the running pfSense dashboard shows the actual firewall WAN as **\`192.168.177.131\`** on the VMware NAT network. Likewise, the deployed Guest interface appears as **\`10.2.2.1\`** rather than a generic \`10.2.X.1\`. These are recorded as design-vs-deployment differences, not silently overwritten.
+**Important distinction:** The architecture drawing labels an upstream `192.168.1.0/24` home-router subnet, while the running pfSense dashboard shows the actual firewall WAN as **`192.168.177.131`** on the VMware NAT network. Likewise, the deployed Guest interface appears as **`10.2.2.1`** rather than a generic `10.2.X.1`. These are recorded as design-vs-deployment differences, not silently overwritten.
 
 ### Routing and security boundary
 
-\`\`\`mermaid
+```mermaid
 flowchart TB
     INTERNET["Home router / upstream Internet"] --> NAT["VMware VMnet8 · NAT<br/>192.168.177.0/24"]
     KALI["Kali test VM<br/>External client on VMnet8"] --- NAT
@@ -81,7 +81,7 @@ flowchart TB
     GUEST -. "Firewall deny rule: 10.2.2.0/24 to 10.1.1.0/24" .-> EMP
     classDef firewall fill:#174d6a,color:#fff,stroke:#42d1c0,stroke-width:2px;
     class FW firewall;
-\`\`\`
+```
 
 ## 🔧 Step-by-step project implementation
 
@@ -89,7 +89,7 @@ flowchart TB
 
 In VMware Workstation, I designed an external NAT-side interface and two internal host-only networks. Employee and Guest networks terminate on separate pfSense interfaces so inter-network access can be controlled with firewall rules rather than depending on a shared flat network.
 
-The intended virtual network mapping is **VMnet8 = NAT/WAN**, **VMnet2 = Employee**, and **VMnet3 = Guest**. The Employee Windows VM uses a \`10.1.1.0/24\` address; the Guest network is assigned \`10.2.2.0/24\` in the running pfSense interface view.
+The intended virtual network mapping is **VMnet8 = NAT/WAN**, **VMnet2 = Employee**, and **VMnet3 = Guest**. The Employee Windows VM uses a `10.1.1.0/24` address; the Guest network is assigned `10.2.2.0/24` in the running pfSense interface view.
 
 ### 02 · Install and configure pfSense CE
 
@@ -135,7 +135,7 @@ Under **Firewall → Rules → GUEST**, the evidence shows a deny rule for TCP f
 
 ### 07 · Validate endpoint and gateway connectivity
 
-On the Windows Employee VM, \`ipconfig\` shows **10.1.1.100/24** with gateway **10.1.1.1**. A ping from Windows to **192.168.177.131** succeeds, returning **four replies and zero packet loss**. This verifies one permitted Employee-to-WAN-side path at the time of capture.
+On the Windows Employee VM, `ipconfig` shows **10.1.1.100/24** with gateway **10.1.1.1**. A ping from Windows to **192.168.177.131** succeeds, returning **four replies and zero packet loss**. This verifies one permitted Employee-to-WAN-side path at the time of capture.
 
 ![Windows IP configuration and successful reachability](assets/evidence/06-windows-connectivity.png)
 
@@ -151,7 +151,7 @@ The Kali screenshots show **failed ICMP probes** to **10.1.1.100** and, in one e
 
 ### 09 · Generate authorized security-test traffic
 
-The supplied Kali captures include **high-rate TCP SYN traffic** directed toward **10.1.1.100:80** using \`hping3\` in flood mode, with no replies reported by the sending tool. These were controlled home-lab experiments rather than evidence of a successful denial-of-service condition.
+The supplied Kali captures include **high-rate TCP SYN traffic** directed toward **10.1.1.100:80** using `hping3` in flood mode, with no replies reported by the sending tool. These were controlled home-lab experiments rather than evidence of a successful denial-of-service condition.
 
 ![Kali security test traffic screenshot](assets/evidence/08-kali-syn-traffic.png)
 
@@ -181,7 +181,7 @@ The pfSense dashboard shows **pfBlockerNG** installed, with IP/DNSBL status widg
 
 | Interface | Policy shown | Captured state | Security purpose |
 |---|---|---|---|
-| Guest | Block TCP from \`10.2.2.0/24\` to \`10.1.1.0/24\` | Deny rule visible | Reduce lateral access to Employee LAN |
+| Guest | Block TCP from `10.2.2.0/24` to `10.1.1.0/24` | Deny rule visible | Reduce lateral access to Employee LAN |
 | Guest | Block TCP/22 to NAT-side host/address range | Deny rule visible | Restrict SSH management exposure |
 | Guest | Pass Guest subnets to any | Allow rule below denies | General egress after preceding denies |
 | Employee | Allow defined SSH path | Pass rule visible | Authorized management/connectivity |
@@ -198,12 +198,12 @@ For the exact displayed values and interpretation caveats, see [Firewall policy 
 |---|---|---|---|
 | pfSense installation | Web setup wizard | Wizard completed | Setup was completed |
 | Interface availability | pfSense dashboard | WAN/Employee/Guest up | Three operational interfaces shown |
-| Windows connectivity | \`10.1.1.100 → 192.168.177.131\` | 4 sent, 4 received | Path reachable in captured test |
-| Kali-to-Employee ping | Kali → \`10.1.1.100\` | No ICMP reply | Unreachable by ICMP in captured test; cause not proven |
-| Kali-to-pfSense WAN | Kali → \`192.168.177.131\` | Earlier loss, later 11/11 replies | Results depend on test conditions/time |
-| High-rate SYN activity | Kali → \`10.1.1.100:80\` | Flood test and 0 replies reported | Does not alone prove target exhaustion or a firewall block |
-| Packet capture | \`10.1.1.1 → 10.1.1.100:80\` | Repeated SYN retransmissions | Connection establishment issues observed |
-| DHCP service | pfSense dashboard | \`dhcpd\` running | DHCP service health visible; lease allocation not shown |
+| Windows connectivity | `10.1.1.100 → 192.168.177.131` | 4 sent, 4 received | Path reachable in captured test |
+| Kali-to-Employee ping | Kali → `10.1.1.100` | No ICMP reply | Unreachable by ICMP in captured test; cause not proven |
+| Kali-to-pfSense WAN | Kali → `192.168.177.131` | Earlier loss, later 11/11 replies | Results depend on test conditions/time |
+| High-rate SYN activity | Kali → `10.1.1.100:80` | Flood test and 0 replies reported | Does not alone prove target exhaustion or a firewall block |
+| Packet capture | `10.1.1.1 → 10.1.1.100:80` | Repeated SYN retransmissions | Connection establishment issues observed |
+| DHCP service | pfSense dashboard | `dhcpd` running | DHCP service health visible; lease allocation not shown |
 | pfBlockerNG | Package and dashboard widgets | Installed / status visible | Filtering effectiveness requires separate proof |
 
 ### What “build → test → defend” taught me
